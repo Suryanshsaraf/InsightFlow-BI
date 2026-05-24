@@ -10,6 +10,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
+    Integer,
     MetaData,
     String,
     Table,
@@ -62,7 +63,7 @@ class TableCreatorService:
         metadata = MetaData()
         
         columns = [
-            Column("id", Float, primary_key=True, autoincrement=True)  # Add a simple autoincrement ID row
+            Column("id", Integer, primary_key=True, autoincrement=True)  # Add a simple autoincrement ID row
         ]
         
         # Add dynamic columns
@@ -129,7 +130,7 @@ class TableCreatorService:
                 
         # Re-bind the table definition
         metadata = MetaData()
-        columns = [Column("id", Float, primary_key=True, autoincrement=True)]
+        columns = [Column("id", Integer, primary_key=True, autoincrement=True)]
         for col_name, col_meta in column_schema.items():
             db_type = cls.get_sqlalchemy_type(col_meta["inferred_type"])
             columns.append(Column(col_name, db_type, nullable=col_meta.get("nullable", True)))
@@ -188,7 +189,7 @@ class TableCreatorService:
         table = Table(
             table_name,
             metadata,
-            Column("id", Float, primary_key=True),
+            Column("id", Integer, primary_key=True),
             schema=target_schema,
         )
         
