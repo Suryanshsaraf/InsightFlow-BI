@@ -1,0 +1,113 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_APP_NAME=InsightFlow
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - insightflow-dev
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://insightflow:devpassword@postgres:5432/insightflow_dev
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev-secret-key-not-for-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CORS_ORIGINS=http://localhost:3000
+      - UPLOAD_DIR=/data/uploads
+      - MAX_FILE_SIZE_MB=100
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend/app:/app/app
+      - upload_data:/data/uploads
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - insightflow-dev
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: python -m arq app.tasks.worker.WorkerSettings
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://insightflow:devpassword@postgres:5432/insightflow_dev
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev-secret-key-not-for-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - UPLOAD_DIR=/data/uploads
+      - ENVIRONMENT=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend/app:/app/app
+      - upload_data:/data/uploads
+    networks:
+      - insightflow-dev
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: insightflow
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: insightflow_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./backend/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U insightflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - insightflow-dev
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - insightflow-dev
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  upload_data:
+
+networks:
+  insightflow-dev:
+    driver: bridge
