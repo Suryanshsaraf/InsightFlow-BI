@@ -20,9 +20,12 @@ class NLToSQLService:
         """Initialize AsyncOpenAI client if key is configured."""
         if not settings.openai_api_key:
             raise ValidationException(
-                "OpenAI API Key is not configured on the backend. Please add it to your .env file."
+                "API Key is not configured on the backend. Please add it to your .env file."
             )
-        return AsyncOpenAI(api_key=settings.openai_api_key)
+        kwargs = {"api_key": settings.openai_api_key}
+        if settings.openai_base_url:
+            kwargs["base_url"] = settings.openai_base_url
+        return AsyncOpenAI(**kwargs)
 
     @classmethod
     async def translate_query(
