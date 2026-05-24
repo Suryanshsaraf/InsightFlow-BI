@@ -1,3 +1,4 @@
+# Database models for User registration and ORM mapping
 """
 User ORM model.
 
