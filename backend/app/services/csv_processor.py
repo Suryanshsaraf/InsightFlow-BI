@@ -152,7 +152,7 @@ class CSVProcessorService:
                 column_schema[col] = {
                     "original_name": col_mapping.get(col, col),
                     "inferred_type": inferred_type,
-                    "nullable": df[col].isnull().any(),
+                    "nullable": bool(df[col].isnull().any()),
                 }
                 
                 # Compute stats
