@@ -1,3 +1,7 @@
+/**
+ * Authentication client module.
+ * Handles api routing for logins, signups, and storage of JWT tokens.
+ */
 import apiClient from './api-client';
 import { User, LoginRequest, SignupRequest, AuthTokens } from '@/types/api';
 
