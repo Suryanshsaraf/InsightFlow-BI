@@ -41,6 +41,21 @@ export default function DatasetsPage() {
     fetchDatasets();
   }, [fetchDatasets]);
 
+  // Polling for processing/pending datasets
+  useEffect(() => {
+    const hasProcessing = datasets.some(
+      (d) => d.status === 'processing' || d.status === 'pending'
+    );
+    
+    if (!hasProcessing) return;
+
+    const interval = setInterval(() => {
+      fetchDatasets();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [datasets, fetchDatasets]);
+
   // Dropzone setup
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
