@@ -73,7 +73,7 @@ class TableCreatorService:
                 Column(
                     col_name,
                     db_type,
-                    nullable=col_meta.get("nullable", True),
+                    nullable=True,
                 )
             )
             
@@ -133,7 +133,7 @@ class TableCreatorService:
         columns = [Column("id", Integer, primary_key=True, autoincrement=True)]
         for col_name, col_meta in column_schema.items():
             db_type = cls.get_sqlalchemy_type(col_meta["inferred_type"])
-            columns.append(Column(col_name, db_type, nullable=col_meta.get("nullable", True)))
+            columns.append(Column(col_name, db_type, nullable=True))
             
         table = Table(
             table_name,
