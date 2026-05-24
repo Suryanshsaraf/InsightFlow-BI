@@ -1,3 +1,4 @@
+# Core system exceptions for API status responses
 """
 Custom exception classes for the application.
 
