@@ -5,9 +5,8 @@ Pydantic v2 schemas for User request/response payloads.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
-
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from typing import Optional, Any
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, model_validator
 
 
 # ── Request schemas ──────────────────────────────────────────────
@@ -19,6 +18,15 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
     full_name: str = Field(..., min_length=1, max_length=255)
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_full_name(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "name" in data and "full_name" not in data:
+                data["full_name"] = data["name"]
+        return data
+
 
 
 class UserUpdate(BaseModel):
