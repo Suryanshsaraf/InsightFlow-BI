@@ -1,3 +1,4 @@
+# Logging configurations for structured app tracking
 """
 Structured logging configuration using ``structlog``.
 """
